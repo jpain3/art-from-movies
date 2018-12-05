@@ -7,3 +7,10 @@ PLEASE NOTE:
 After running this tool, it may be useful to run the 'BBResetScreen' macro to restore your copy of Excel to full visual functionality.
 
 Thank you and Enjoy!
+
+Team Members:
+  Mark Chepkwony (markchep@mit.edu)
+  Ayano Kagami (kagami@mit.edu)
+  Tomoko Muraki (tmuraki@mit.edu)
+  James Paine (jpaine@mit.edu)
+  Melinda Salaman (msalaman@mit.edu)
