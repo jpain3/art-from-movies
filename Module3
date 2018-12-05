@@ -1,0 +1,122 @@
+Sub data_cleans()
+
+Dim i, MaxRow As Integer
+
+' Paintings
+
+Set ws = ActiveWorkbook.Sheets("USER ITEM TABLE - PAINTINGS")
+
+MaxRow = ws.Cells(Rows.Count, 1).End(xlUp).Row
+
+' Delete no entry rows
+
+For i = 2 To MaxRow
+
+    ws.Cells(i, 41).Value = WorksheetFunction.Sum(ws.Range("B" & i & ":AN" & i))
+    ws.Cells(i, 42).Value = WorksheetFunction.StDev_P(ws.Range("B" & i & ":AN" & i))
+                        
+Next i
+
+' Delete sum=0
+
+ws.Range("A1").CurrentRegion.AutoFilter Field:=41, Criteria1:=0
+    
+    Dim myRng As Range
+    Dim lstRow As Long
+    
+    Set myRng = ws.AutoFilter.Range
+    
+    lstRow = myRng.Rows.Count
+    
+    On Error Resume Next
+    
+    ws.Rows("2:" & lstRow).SpecialCells(xlCellTypeVisible).Delete
+    On Error GoTo 0
+    
+    ' Remove autofilter
+    Range("A1").AutoFilter
+    
+    ' Initialize variable
+    Set myRng = Nothing
+
+' Delete sigma=0
+
+ws.Range("A1").CurrentRegion.AutoFilter Field:=42, Criteria1:=0
+    
+    Set myRng = ws.AutoFilter.Range
+    
+    lstRow = myRng.Rows.Count
+    
+    On Error Resume Next
+    
+    ws.Rows("2:" & lstRow).SpecialCells(xlCellTypeVisible).Delete
+    On Error GoTo 0
+    
+    ' Remove autofilter
+    Range("A1").AutoFilter
+    
+    ' Initialize variable
+    Set myRng = Nothing
+
+ws.Range("AO:AP").ClearContents
+
+' Movies
+
+Set ws = ActiveWorkbook.Sheets("USER ITEM TABLE - MOVIES")
+
+MaxRow = ws.Cells(Rows.Count, 1).End(xlUp).Row
+
+' Delete no entry rows
+
+For i = 2 To MaxRow
+
+    ws.Cells(i, 102).Value = WorksheetFunction.Sum(ws.Range("B" & i & ":CW" & i))
+    ws.Cells(i, 103).Value = WorksheetFunction.StDev_P(ws.Range("B" & i & ":CW" & i))
+                
+Next i
+
+' Delete sum=0
+
+ws.Range("A1").CurrentRegion.AutoFilter Field:=102, Criteria1:=0
+    
+    Set myRng = ws.AutoFilter.Range
+    
+    lstRow = myRng.Rows.Count
+    
+    On Error Resume Next
+    
+    ws.Rows("2:" & lstRow).SpecialCells(xlCellTypeVisible).Delete
+    On Error GoTo 0
+    
+    ' Remove autofilter
+    Range("A1").AutoFilter
+    
+    ' Initialize variable
+    Set myRng = Nothing
+
+' Delete sigma=0
+
+ws.Range("A1").CurrentRegion.AutoFilter Field:=103, Criteria1:=0
+    
+    Set myRng = ws.AutoFilter.Range
+    
+    lstRow = myRng.Rows.Count
+    
+    On Error Resume Next
+    
+    ws.Rows("2:" & lstRow).SpecialCells(xlCellTypeVisible).Delete
+    On Error GoTo 0
+    
+    ' Remove autofilter
+    Range("A1").AutoFilter
+    
+    ' Initialize variable
+    Set myRng = Nothing
+
+ws.Range("CX:CY").ClearContents
+
+ 
+End Sub
+
+
+
