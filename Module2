@@ -1,0 +1,348 @@
+Sub Finished()
+Set ws = ActiveWorkbook.Sheets("Interface")
+    
+    If ws.Cells(26, 4) > 0 Then
+    
+        Application.ScreenUpdating = False
+        Application.Calculation = xlManual
+        
+        Application.StatusBar = "Calculating User-User Similarities..."
+        
+        Call User_Similarity
+        Call Est_Ratings
+        
+        Application.ScreenUpdating = True
+        Application.Calculation = xlAutomatic
+        DoEvents
+        
+        Application.StatusBar = "Calculating Your Estimated Painting Scores..."
+        
+        Call reccomended_paintings
+        
+        Application.StatusBar = "Done!"
+        
+        Worksheets("Reccomendations").Activate
+        Call ResizeScreen_Finished
+        
+    End If
+    
+    Application.StatusBar = False
+    
+End Sub
+
+Sub AAStartOver()
+
+'
+Dim cbars As CommandBar
+Worksheets("Interface").Activate
+
+
+With Application
+    .WindowState = xlNormal
+    .Width = 200
+    .Height = 555
+End With
+
+With ActiveWindow
+    .DisplayHeadings = False
+    .DisplayWorkbookTabs = False
+    .DisplayHorizontalScrollBar = False
+End With
+
+
+End Sub
+
+
+Sub User_Similarity()
+
+Dim ws, ws2, ws3 As Worksheet
+
+Set ws = ActiveWorkbook.Sheets("User Ratings")
+Set ws3 = ActiveWorkbook.Sheets("Interface")
+
+If ws3.Shapes("BiScaleCheck").OLEFormat.Object.Value = 1 Then
+    DeBasis = True
+Else
+    DeBasis = False
+End If
+
+Threshold = True
+
+If DeBasis = True Then
+    'Worksheet References for Debaised Ratings
+    Set ws2 = ActiveWorkbook.Sheets("USER ITEM TABLE - MOVIES DB")
+    UserBasis = ws.Cells(2, 5)
+
+Else
+    'Worksheet References for Baised Ratings
+    Set ws2 = ActiveWorkbook.Sheets("USER ITEM TABLE - MOVIES")
+    UserBasis = 0
+
+End If
+
+
+        
+'Set the index that steps through each user in the USER ITEM TABLE - MOVIES tab (set to 2 if there's a header)
+k = 2
+
+'Loop through each user in the USER ITEM TABLE - MOVIES and calcluate the similarity
+Do
+    
+    If ws2.Cells(k, 1) = "" Then Exit Do
+    RefUserID = ws2.Cells(k, 1)
+    'Loop through the scores given by the current user (set initial index to 2 if there's a header)
+    i = 2
+    
+    Numerator = 0
+    Denom1 = 0
+    Denom2 = 0
+    
+    Do
+    
+        If ws.Cells(i, 4) = "" Then Exit Do
+
+        QualtricsID = ws.Cells(i, 4)
+        UserRating = ws.Cells(i, 3)
+        
+        If UserRating > 0 Then
+        
+            UserRating = UserRating - UserBasis
+        
+            m = 2
+            'Loop through each movie rating
+            
+            Do
+            
+                       
+                If ws2.Cells(1, m) = "" Then Exit Do
+                        
+                'check if the current reference user has rated the same movie as the user
+                RatedID = ws2.Cells(1, m)
+                If ws2.Cells(k, m) <> 0 And ws2.Cells(k, m) <> "" Then
+                
+                    If RatedID = QualtricsID Then
+                    
+                        RefRating = ws2.Cells(k, m)
+                                                
+                        'Add to the components of the similarity score:
+                        Numerator = Numerator + RefRating * UserRating
+                        Denom1 = Denom1 + RefRating ^ 2
+                        Denom2 = Denom2 + UserRating ^ 2
+                        
+                    End If
+                    
+                
+                End If
+            
+                'Next movie in the USER ITEM TABLE - MOVIES for the current reference user
+                m = m + 1
+                   
+            Loop
+            
+        End If
+    
+        i = i + 1
+    
+    Loop
+    
+    'Combine the parts of the similarity score
+    If (Denom1 <> 0 And Denom2 <> 0) Then
+        Denominator = (Denom1 * Denom2)
+        Denominator = Sqr(Denominator)
+        Similarity = Numerator / Denominator
+        
+        'Threshold the similarity
+        If Threshold = True Then
+            If Similarity < 0 Then Similarity = 0
+        End If
+        
+        Else: Similarity = 0
+    End If
+    
+    ws.Cells(k, 7) = RefUserID
+    ws.Cells(k, 8) = Similarity
+    
+    
+    'Next reference user in the USER ITEM TABLE - MOVIES
+    k = k + 1
+    
+Loop
+
+End Sub
+
+
+Sub Est_Ratings()
+
+Dim ws, ws2 As Worksheet
+
+Set ws = ActiveWorkbook.Sheets("User Ratings")
+Set ws3 = ActiveWorkbook.Sheets("Interface")
+
+If ws3.Shapes("BiScaleCheck").OLEFormat.Object.Value = 1 Then
+    DeBasis = True
+Else
+    DeBasis = False
+End If
+
+'Factor that is the average/typical value that a person rates movies higher than paintings
+MoviesVsPaintingsOffset = 0.45
+
+
+If DeBasis = True Then
+    'Worksheet References for Debaised Ratings
+    Set ws2 = ActiveWorkbook.Sheets("USER ITEM TABLE - PT DB")
+    UserBasis = ws.Cells(2, 5) - MoviesVsPaintingsOffset
+
+Else
+    'Worksheet References for Baised Ratings
+    Set ws2 = ActiveWorkbook.Sheets("USER ITEM TABLE - PAINTINGS")
+    UserBasis = 0 - MoviesVsPaintingsOffset
+
+End If
+
+
+
+
+'Loop through each painting and weight the responses
+m = 2
+Do
+    If ws2.Cells(1, m) = "" Then Exit Do
+    
+    Numerator = 0
+    Denominator = 0
+    
+    'Loop through each reference user
+    i = 2
+    Do
+
+        If ws2.Cells(i, 1) = "" Then Exit Do
+        
+        RefRating = ws2.Cells(i, m)
+        
+        If RefRating <> 0 And RefRating <> "" Then
+        
+            RefUserID = ws2.Cells(i, 1)
+        
+            'Find the scaling factor for this reference user from the similarity table
+            c = 2
+            Weight = 0
+            Do
+                If ws.Cells(c, 7) = "" Then Exit Do
+                If ws.Cells(c, 7) = RefUserID Then
+                    Weight = ws.Cells(c, 8)
+                    
+                    Numerator = Numerator + RefRating * Weight
+                    Denominator = Denominator + Weight
+                    
+                    Exit Do
+                End If
+                
+                c = c + 1
+                
+            Loop
+        
+        End If
+        
+        i = i + 1
+        
+    
+    Loop
+    
+    'Print the estimated ratings and loop to the next item to rate
+    
+    If Denominator <> 0 Then
+        Est_Rating = Numerator / Denominator
+        
+        If DeBasis = True Then
+            Est_Rating = Est_Rating + UserBasis
+        End If
+        
+        
+    Else: Est_Rating = 0
+    End If
+
+    
+    ws.Cells(m, 10) = ws2.Cells(1, m)
+    ws.Cells(m, 11) = Est_Rating
+    m = m + 1
+    
+Loop
+
+
+End Sub
+
+Sub reccomended_paintings()
+
+Dim ws As Worksheet
+Dim strObjName() As String
+Dim intObj As Integer
+Dim i As Integer
+Dim t As Variant
+Dim l As Variant
+Dim h As Variant
+Dim w As Variant
+Dim ImageName As String
+Dim hp As Hyperlink
+
+Set ws = ActiveWorkbook.Sheets("Reccomendations")
+
+intObj = ws.Shapes.Count
+        
+ReDim strObjName(intObj) ' intObj should be 3
+                                                
+    For i = 1 To intObj
+        
+        strObjName(i) = ws.Shapes(i).Name
+        
+    Next i
+       
+    For Each hp In ws.Hyperlinks
+        hp.Delete
+    Next hp
+       
+    For i = 1 To intObj
+    
+        t = ws.Shapes.Range(strObjName(i)).Top
+        l = ws.Shapes.Range(strObjName(i)).Left
+        h = ws.Shapes.Range(strObjName(i)).Height
+        w = ws.Shapes.Range(strObjName(i)).Width
+                        
+        ws.Shapes.Range(strObjName(i)).Delete
+        
+       ' Add new pic
+       
+        ImageName = ws.Cells(7, i + 1)
+        ImageHyperLink = ws.Cells(12, i + 1)
+       
+        imageURL = Application.ActiveWorkbook.Path & "\Paintings_Images\" & ImageName
+       
+        Set shp = ws.Shapes.AddPicture(imageURL, msoFalse, msoTrue, l, t, w, h)
+        'shp.ScaleHeight Factor:=1, RelativeToOriginalSize:=msoTrue
+        'shp.ScaleWidth Factor:=1, RelativeToOriginalSize:=msoTrue
+    
+        ws.Hyperlinks.Add Anchor:=shp, Address:=ImageHyperLink
+    
+    Next i
+
+End Sub
+
+Sub ResizeScreen_Finished()
+'
+Dim cbars As CommandBar
+
+Worksheets("Reccomendations").Activate
+
+With Application
+    .WindowState = xlNormal
+    .Width = 670
+    .Height = 385
+End With
+
+
+With ActiveWindow
+    .DisplayHeadings = False
+    .DisplayWorkbookTabs = False
+    .DisplayHorizontalScrollBar = False
+End With
+
+End Sub
