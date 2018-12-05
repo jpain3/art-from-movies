@@ -1,0 +1,53 @@
+Sub Paintings_Unbias_Ratings()
+'
+' Paintings_Unbias_Ratings Macro
+' Unbias user ratings of paintings
+
+    Set ws = ActiveWorkbook.Sheets("USER ITEM TABLE - PAINTINGS")
+    Set ws1 = ActiveWorkbook.Sheets("USER ITEM TABLE - PT DB")
+    
+    ws.Activate
+    ws.Range("AP2").FormulaR1C1 = "=AVERAGE(RC[-40]:RC[-2])"
+    ws.Range("AP2").AutoFill Destination:=ws.Range("AP2:AP150"), Type:=xlFillDefaults
+
+    ws1.Activate
+    ws1.Range("B2").FormulaR1C1 = _
+        "=IF('USER ITEM TABLE - PAINTINGS'!RC="""","""",'USER ITEM TABLE - PAINTINGS'!RC-'USER ITEM TABLE - PAINTINGS'!RC42)"
+
+    ws1.Range("B2").AutoFill Destination:=ws1.Range("B2:AN2"), Type:=xlFillDefault
+    ws1.Range("B2").Select
+    ws1.Range(Selection, Selection.End(xlToRight)).Select
+    Selection.AutoFill Destination:=Range(Selection, Selection.End(xlDown))
+    
+
+End Sub
+
+
+Sub Movies_Unbias_Ratings()
+'
+' Movies_Unbias_Ratings Macro
+' Unbias user ratings of movies
+'
+    Set ws = ActiveWorkbook.Sheets("USER ITEM TABLE - MOVIES")
+    Set ws1 = ActiveWorkbook.Sheets("USER ITEM TABLE - MOVIES DB")
+    
+    ws.Activate
+    ws.Range("CY2").FormulaR1C1 = "=AVERAGE(RC[-101]:RC[-2])"
+    ws.Range("CY2").AutoFill Destination:=ws.Range("CY2:CY148"), Type:=xlFillDefaults
+
+    ws1.Activate
+    ws1.Range("B2").FormulaR1C1 = _
+        "=IF('USER ITEM TABLE - MOVIES'!RC="""","""",'USER ITEM TABLE - MOVIES'!RC-'USER ITEM TABLE - MOVIES'!RC103)"
+
+    
+    ws1.Range("B2").AutoFill Destination:=ws1.Range("B2:CW2"), Type:=xlFillDefault
+    ws1.Range("B2").Select
+    ws1.Range(Selection, Selection.End(xlToRight)).Select
+    Selection.AutoFill Destination:=Range(Selection, Selection.End(xlDown))
+  
+End Sub
+
+
+
+
+
