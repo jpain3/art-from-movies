@@ -1,0 +1,85 @@
+Sub ResizeScreen_start()
+'
+Dim cbars As CommandBar
+
+With Application
+    .WindowState = xlNormal
+    .Width = 200
+    .Height = 555
+End With
+
+With ActiveWindow
+    .DisplayHeadings = False
+    .DisplayWorkbookTabs = False
+    .DisplayHorizontalScrollBar = False
+End With
+
+End Sub
+
+
+Sub Test1()
+With ActiveWindow
+    .Zoom = 100
+End With
+
+
+End Sub
+
+Sub BBResetScreen()
+'
+
+Dim cbars As CommandBar
+
+
+For Each cbars In Application.CommandBars
+    cbars.Enabled = True
+Next
+
+With Application
+    .WindowState = xlNormal
+    .Width = 500
+    .Height = 585
+End With
+
+With ActiveWindow
+    .DisplayHeadings = True
+    .DisplayWorkbookTabs = True
+    .DisplayHorizontalScrollBar = True
+End With
+
+End Sub
+
+
+Sub RenameCheckBox()
+Dim frmfld As Shape
+
+With ActiveSheet
+
+    For Each frmfld In .Shapes
+        If frmfld.Type = msoFormControl Then
+            If frmfld.FormControlType = xlCheckBox Then
+                nametest = frmfld.Name
+                frmfld.Name = "BiScaleCheck"
+            End If
+        End If
+        
+    Next frmfld
+
+End With
+
+testval = ActiveSheet.Shapes("BiScaleCheck").OLEFormat.Object.Value
+
+End Sub
+
+
+Sub CheckImageName()
+    Dim pic                   As Excel.Picture
+
+    For Each pic In ActiveSheet.Pictures
+
+        Cells(1, 1) = pic.Name
+        pic.Name = "MoviePoster"
+        
+    Next pic
+End Sub
+
